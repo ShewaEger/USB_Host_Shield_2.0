@@ -311,7 +311,9 @@ uint8_t USB::outTransfer(uint8_t addr, uint8_t ep, uint16_t nbytes, uint8_t* dat
 
 uint8_t USB::OutTransfer(EpInfo *pep, uint16_t nak_limit, uint16_t nbytes, uint8_t *data) {
         uint8_t rcode = hrSUCCESS, retry_count;
-        uint8_t *data_p = data; //local copy of the data pointer
+        //uint8_t *data_p = data; //local copy of the data pointer
+        uint8_t *data_p = new uint8_t[nbytes];
+        memcpy(data_p, data, nbytes);
         uint16_t bytes_tosend, nak_count;
         uint16_t bytes_left = nbytes;
 
@@ -371,7 +373,7 @@ uint8_t USB::OutTransfer(EpInfo *pep, uint16_t nak_limit, uint16_t nbytes, uint8
                 data_p += bytes_tosend;
         }//while( bytes_left...
 breakout:
-
+        delete data_p;
         pep->bmSndToggle = (regRd(rHRSL) & bmSNDTOGRD) ? 1 : 0; //bmSNDTOG1 : bmSNDTOG0;  //update toggle
         return ( rcode); //should be 0 in all cases
 }
