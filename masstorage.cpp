@@ -197,12 +197,12 @@ uint8_t BulkOnly::Write(uint8_t lun, uint32_t addr, uint16_t bsize, uint8_t bloc
         if(!WriteOk[lun]) return MASS_ERR_WRITE_PROTECTED;
         Notify(PSTR("\r\nWrite LUN:\t"), 0x80);
         D_PrintHex<uint8_t > (lun, 0x90);
-        Notify(PSTR("\r\nLBA:\t\t"), 0x90);
-        D_PrintHex<uint32_t > (addr, 0x90);
-        Notify(PSTR("\r\nblocks:\t\t"), 0x90);
-        D_PrintHex<uint8_t > (blocks, 0x90);
-        Notify(PSTR("\r\nblock size:\t"), 0x90);
-        D_PrintHex<uint16_t > (bsize, 0x90);
+        Notify(PSTR("\r\nLBA:\t\t"), 0x80);
+        D_PrintHex<uint32_t > (addr, 0x80);
+        Notify(PSTR("\r\nblocks:\t\t"), 0x80);
+        D_PrintHex<uint8_t > (blocks, 0x80);
+        Notify(PSTR("\r\nblock size:\t"), 0x80);
+        D_PrintHex<uint16_t > (bsize, 0x80);
         Notify(PSTR("\r\n---------\r\n"), 0x80);
         CDB10_t cdb = CDB10_t(SCSI_CMD_WRITE_10, lun, blocks, addr);
 
@@ -1034,6 +1034,7 @@ uint8_t BulkOnly::Transaction(CommandBlockWrapper *pcbw, uint16_t buf_size, void
         bool write = (pcbw->bmCBWFlags & MASS_CMD_DIR_IN) != MASS_CMD_DIR_IN;
         uint8_t ret = 0;
         uint8_t usberr;
+        uint32_t cbwddCBWTag = pcbw->dCBWTag;
         CommandStatusWrapper csw; // up here, we allocate ahead to save cpu cycles.
         SetCurLUN(pcbw->bmCBWLUN);
         ErrorMessage<uint32_t > (PSTR("CBW.dCBWTag"), pcbw->dCBWTag);
@@ -1048,12 +1049,14 @@ uint8_t BulkOnly::Transaction(CommandBlockWrapper *pcbw, uint16_t buf_size, void
                 if(bytes) {
                         if(!write) {
 #if MS_WANT_PARSER
+
                                 if(callback) {
                                         uint8_t rbuf[bytes];
                                         while((usberr = pUsb->inTransfer(bAddress, epInfo[epDataInIndex].epAddr, &bytes, rbuf)) == hrBUSY) delay(1);
                                         if(usberr == hrSUCCESS) ((USBReadParser*)buf)->Parse(bytes, rbuf, 0);
                                 } else {
-#endif
+#endif                                  
+                                        
                                         while((usberr = pUsb->inTransfer(bAddress, epInfo[epDataInIndex].epAddr, &bytes, (uint8_t*)buf)) == hrBUSY) delay(1);
 #if MS_WANT_PARSER
 
@@ -1061,6 +1064,8 @@ uint8_t BulkOnly::Transaction(CommandBlockWrapper *pcbw, uint16_t buf_size, void
 #endif
                                 ret = HandleUsbError(usberr, epDataInIndex);
                         } else {
+                                
+
                                 while((usberr = pUsb->outTransfer(bAddress, epInfo[epDataOutIndex].epAddr, bytes, (uint8_t*)buf)) == hrBUSY) delay(1);
                                 ret = HandleUsbError(usberr, epDataOutIndex);
                         }
@@ -1092,7 +1097,8 @@ uint8_t BulkOnly::Transaction(CommandBlockWrapper *pcbw, uint16_t buf_size, void
                         ErrorMessage<uint8_t > (PSTR("============================ CSW"), ret);
                 }
                 if(usberr == hrSUCCESS) {
-                        if(IsValidCSW(&csw, pcbw)) {
+                        //if(IsValidCSW(&csw, pcbw)) {
+                        if(csw.dCSWSignature == MASS_CSW_SIGNATURE && csw.dCSWTag == cbwddCBWTag){
                                 //ErrorMessage<uint32_t > (PSTR("CSW.dCBWTag"), csw.dCSWTag);
                                 //ErrorMessage<uint8_t > (PSTR("bCSWStatus"), csw.bCSWStatus);
                                 //ErrorMessage<uint32_t > (PSTR("dCSWDataResidue"), csw.dCSWDataResidue);
