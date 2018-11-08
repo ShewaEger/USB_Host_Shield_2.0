@@ -230,8 +230,13 @@ uint8_t* MAX3421e< SPI_SS, INTR >::bytesWr(uint8_t reg, uint8_t nbytes, uint8_t*
         data_p += nbytes;
 #elif defined(SPI_HAS_TRANSACTION) && !defined(ESP8266) && !defined(ESP32)
         USB_SPI.transfer(reg | 0x02);
-        USB_SPI.transfer(data_p, nbytes);
-        data_p += nbytes;
+        uint8_t * p = data_p;
+        //USB_SPI.transfer(data_p, nbytes);
+        for(int i = 0; i < nbytes; i++){
+            USB_SPI.transfer(p[i]);
+        }
+        //data_p += nbytes;
+        //mega here
 #elif defined(__ARDUINO_X86__)
         USB_SPI.transfer(reg | 0x02);
         USB_SPI.transferBuffer(data_p, NULL, nbytes);

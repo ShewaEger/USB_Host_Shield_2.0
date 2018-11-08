@@ -1097,8 +1097,8 @@ uint8_t BulkOnly::Transaction(CommandBlockWrapper *pcbw, uint16_t buf_size, void
                         ErrorMessage<uint8_t > (PSTR("============================ CSW"), ret);
                 }
                 if(usberr == hrSUCCESS) {
-                        //if(IsValidCSW(&csw, pcbw)) {
-                        if(csw.dCSWSignature == MASS_CSW_SIGNATURE && csw.dCSWTag == cbwddCBWTag){
+                        if(IsValidCSW(&csw, pcbw)) {
+                        //if(csw.dCSWSignature == MASS_CSW_SIGNATURE && csw.dCSWTag == cbwddCBWTag){
                                 //ErrorMessage<uint32_t > (PSTR("CSW.dCBWTag"), csw.dCSWTag);
                                 //ErrorMessage<uint8_t > (PSTR("bCSWStatus"), csw.bCSWStatus);
                                 //ErrorMessage<uint32_t > (PSTR("dCSWDataResidue"), csw.dCSWDataResidue);

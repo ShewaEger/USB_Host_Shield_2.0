@@ -330,7 +330,31 @@ uint8_t USB::OutTransfer(EpInfo *pep, uint16_t nak_limit, uint16_t nbytes, uint8
                 retry_count = 0;
                 nak_count = 0;
                 bytes_tosend = (bytes_left >= maxpktsize) ? maxpktsize : bytes_left;
+                // if(nbytes == 512){
+                // Serial.println("data before: (333)");
+                // for(int i = 0; i < nbytes; i++ ){
+                //     if(i%16 == 0 && i !=0)
+                //         Serial.println("");
+                //     if(data[i] < 0x10)
+                //         Serial.print("0");
+                //     Serial.print(data[i], HEX);
+                //     Serial.print(" ");
+                // }
+                // }
+                // Serial.println("");
                 bytesWr(rSNDFIFO, bytes_tosend, data_p); //filling output FIFO
+                // if(nbytes == 512){
+                // Serial.println("data after: (344)");
+                // for(int i = 0; i < nbytes; i++ ){
+                //     if(i%16 == 0 && i !=0)
+                //         Serial.println("");
+                //     if(data[i] < 0x10)
+                //         Serial.print("0");
+                //     Serial.print(data[i], HEX);
+                //     Serial.print(" ");
+                // }
+                // Serial.println("");
+                // }
                 regWr(rSNDBC, bytes_tosend); //set number of bytes
                 regWr(rHXFR, (tokOUT | pep->epAddr)); //dispatch packet
                 while(!(regRd(rHIRQ) & bmHXFRDNIRQ)); //wait for the completion IRQ
