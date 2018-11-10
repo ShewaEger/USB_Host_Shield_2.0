@@ -422,6 +422,18 @@ uint8_t BulkOnly::Init(uint8_t parent __attribute__((unused)), uint8_t port __at
                 if(rcode) {
                         ErrorMessage<uint8_t > (PSTR("Inquiry"), rcode);
                 } else {
+#if ENABLE_UHS_DEBUGGING
+                        ErrorMessage<uint8_t > (PSTR("LUN"), lun);
+                        uint8_t *buf = response.VendorID;
+                        for(int i = 0; i < 28; i++) Serial.print(buf[i]);
+                        Serial.println("");
+                        ErrorMessage<uint8_t > (PSTR("nQualifier"), response.PeripheralQualifier);
+                        ErrorMessage<uint8_t > (PSTR("Device type"), response.DeviceType);
+                        ErrorMessage<uint8_t > (PSTR("RMB"), response.Removable);
+                        ErrorMessage<uint8_t > (PSTR("SSCS"), response.SCCS);
+                        ErrorMessage<uint8_t > (PSTR("SCSI version"), response.Version);
+
+#endif
 #if 0
                         printf("LUN %i `", lun);
                         uint8_t *buf = response.VendorID;
@@ -1087,6 +1099,20 @@ uint8_t BulkOnly::Transaction(CommandBlockWrapper *pcbw, uint16_t buf_size, void
                 if(!ret) {
                         Notify(PSTR("CBW:\t\tOK\r\n"), 0x80);
                         Notify(PSTR("Data Stage:\tOK\r\n"), 0x80);
+                        //Notify(PSTR("CSW: \r\n"), 0x80);
+                        //uint8_t *cswBytes = (uint8_t *)&csw;
+                
+                //Serial.println("data after: (344)");
+                // for(int i = 0; i < sizeof(CommandStatusWrapper); i++ ){
+                //     if(i%16 == 0 && i !=0)
+                //         Serial.println("");
+                //     if(cswBytes[i] < 0x10)
+                //         Serial.print("0");
+                //     Serial.print(cswBytes[i], HEX);
+                //     Serial.print(" ");
+                // }
+                // Serial.println("");
+                
                 } else {
                         // Throw away csw, IT IS NOT OF ANY USE.
                         ResetRecovery();
